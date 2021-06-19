@@ -1,46 +1,47 @@
-const db = require('./models')
-const Todo = db.Todo
-const User = db.User
-
 const express = require('express')
+const session = require('express-session')
 const exphbs = require('express-handlebars')
-const bodyParser = require('body-parser')
+const { urlencoded } = require("body-parser")
 const methodOverride = require('method-override')
-const bcrypt = require('bcryptjs')
+const flash = require('connect-flash')
+
+// if (process.env.NODE_ENV !== 'production') {
+//   require('dotenv').config()
+// }
+
+const routes = require('./routes')
+const usePassport = require('./config/passport') // 載入 Passport 設定檔
 
 const app = express()
-const PORT = 3000
+
 
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
 app.set('view engine', 'hbs')
-app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use(session({
+  secret: 'ThisIsMySecret',
+  resave: false,
+  saveUninitialized: true
+}))
+
+app.use(urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
 
-app.get('/', (req, res) => {
-  res.send('hello world')
+usePassport(app)
+app.use(flash()) 
+app.use((req, res, next) => {
+  // 設定本地變數 res.locals
+  // 把 req.isAuthenticated() 回傳的布林值、以及user使用者資料，交接給 res 使用
+  res.locals.isAuthenticated = req.isAuthenticated()
+  res.locals.user = req.user
+  res.locals.success_msg = req.flash('success_msg')  // 設定 success_msg 訊息
+  res.locals.warning_msg = req.flash('warning_msg')  // 設定 warning_msg 訊息
+  next()
 })
 
-app.get('/users/login', (req, res) => {
-  res.render('login')
-})
+app.use(routes)
 
-app.post('/users/login', (req, res) => {
-  res.send('login')
-})
-
-app.get('/users/register', (req, res) => {
-  res.render('register')
-})
-
-app.post('/users/register', (req, res) => {
-  const { name, email, password, confirmPassword } = req.body
-  User.create({ name, email, password })
-    .then(user => res.redirect('/'))
-})
-
-app.get('/users/logout', (req, res) => {
-  res.send('logout')
-})
+const PORT = 3000
 
 app.listen(PORT, () => {
   console.log(`App is running on http://localhost:${PORT}`)
