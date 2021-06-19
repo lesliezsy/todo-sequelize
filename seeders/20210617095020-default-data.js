@@ -1,6 +1,11 @@
 'use strict';
 
 const bcrypt = require('bcryptjs')
+
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+} 
+
 const SEED_USER = {
   name: 'root',
   email: 'root@example.com',

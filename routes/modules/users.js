@@ -48,8 +48,10 @@ router.post('/register', (req, res) => {
   // 檢查使用者是否已註冊
   User.findOne({ where: { email } }).then(user => {
     if (user) {
+      errors.push({ message: 'This user already exists.' })
       console.log('User already exists')
       return res.render('register', {
+        errors,
         name,
         email,
         password,
@@ -64,13 +66,14 @@ router.post('/register', (req, res) => {
         email,
         password: hash
       }))
-      .then(() => res.redirect('/'))
+      .then(()=> req.flash('success_msg', 'You have successfully registered. Please log in.'))
+      .then(() => res.redirect('/users/login'))
       .catch(err => console.log(err))
   })
 })
 
 router.get('/logout', (req, res) => {
-  res.send('logout')
+  req.logout()
   req.flash('success_msg', 'You have been successfully logged out.')
   res.redirect('/users/login')
 })

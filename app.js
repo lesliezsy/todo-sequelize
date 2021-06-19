@@ -5,12 +5,12 @@ const { urlencoded } = require("body-parser")
 const methodOverride = require('method-override')
 const flash = require('connect-flash')
 
-// if (process.env.NODE_ENV !== 'production') {
-//   require('dotenv').config()
-// }
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 
-const routes = require('./routes')
 const usePassport = require('./config/passport') // 載入 Passport 設定檔
+const routes = require('./routes')
 
 const app = express()
 
@@ -19,7 +19,7 @@ app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
 app.set('view engine', 'hbs')
 
 app.use(session({
-  secret: 'ThisIsMySecret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 }))
@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 
 app.use(routes)
 
-const PORT = 3000
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
   console.log(`App is running on http://localhost:${PORT}`)
